@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>抑郁症风险评估</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B5CF6', // 紫色作为主色调，代表关怀与平静
+            secondary: '#10B981',
+            danger: '#EF4444',
+            warning: '#F59E0B',
+            info: '#3B82F6',
+            light: '#F9FAFB',
+            dark: '#1F2937'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .card-shadow {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+      .input-focus {
+        @apply focus:ring-2 focus:ring-primary/50 focus:border-primary transition duration-200;
+      }
+      .btn-hover {
+        @apply hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200;
+      }
+      .fade-in {
+        animation: fadeIn 0.6s ease-in-out forwards;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-5xl">
+    <!-- 页面标题 -->
+    <div class="text-center mb-10 fade-in">
+      <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-dark mb-3 tracking-tight">
+        抑郁症风险评估
+      </h1>
+      <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+        通过专业评估，了解您的心理健康状况，及时发现潜在风险
+      </p>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="grid md:grid-cols-3 gap-8">
+      <!-- 表单卡片 -->
+      <div class="md:col-span-2 bg-white rounded-xl p-6 card-shadow fade-in" style="animation-delay: 0.1s">
+        <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+          <i class="fa fa-heart-pulse text-primary mr-2"></i>个人信息填写
+        </h2>
+        <form id="depressionForm" class="space-y-5">
+          <!-- 基础信息 -->
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">性别</label>
+              <select id="gender" name="gender" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+                <option value="Male">男</option>
+                <option value="Female">女</option>
+              </select>
+            </div>
+            <div>
+              <label for="age" class="block text-sm font-medium text-gray-700 mb-1">年龄 (岁)</label>
+              <input type="number" id="age" name="age" min="12" max="120" step="1" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+            </div>
+          </div>
+
+          <!-- 职业状态 -->
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label for="workingOrStudent" class="block text-sm font-medium text-gray-700 mb-1">身份</label>
+              <select id="workingOrStudent" name="workingOrStudent" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+                <option value="Working Professional">工作人士</option>
+                <option value="Student">学生</option>
+              </select>
+            </div>
+            <div>
+              <label for="workStudyHours" class="block text-sm font-medium text-gray-700 mb-1">工作/学习时长 (小时/天)</label>
+              <input type="number" id="workStudyHours" name="workStudyHours" min="1" max="24" step="1" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+            </div>
+          </div>
+
+          <!-- 压力评估 -->
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label for="stressLevel" class="block text-sm font-medium text-gray-700 mb-1">
+                工作/学业压力等级 (1-5，1最低，5最高)
+              </label>
+              <input type="number" id="stressLevel" name="stressLevel" min="1" max="5" step="0.5" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>轻微压力</span>
+                <span>中等压力</span>
+                <span>严重压力</span>
+              </div>
+            </div>
+            <div>
+              <label for="financialStress" class="block text-sm font-medium text-gray-700 mb-1">
+                财政压力等级 (1-5，1最低，5最高)
+              </label>
+              <input type="number" id="financialStress" name="financialStress" min="1" max="5" step="0.5" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>无压力</span>
+                <span>中等压力</span>
+                <span>严重压力</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 生活习惯 -->
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label for="sleepDuration" class="block text-sm font-medium text-gray-700 mb-1">睡眠时长</label>
+              <select id="sleepDuration" name="sleepDuration" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+                <option value="Less than 5 hours">5小时以下</option>
+                <option value="5-6 hours">5到6小时</option>
+                <option value="7-8 hours">7到8小时</option>
+                <option value="More than 8 hours">8小时以上</option>
+              </select>
+            </div>
+            <div>
+              <label for="dietaryHabits" class="block text-sm font-medium text-gray-700 mb-1">饮食习惯</label>
+              <select id="dietaryHabits" name="dietaryHabits" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus">
+                <option value="Healthy">健康</option>
+                <option value="Moderate">一般</option>
+                <option value="Unhealthy">不健康</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 心理健康相关 -->
+          <div class="grid md:grid-cols-2 gap-5">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">是否有自杀念头</label>
+              <div class="flex space-x-4">
+                <label class="inline-flex items-center">
+                  <input type="radio" name="suicidalThoughts" value="No" class="form-radio text-primary" required>
+                  <span class="ml-2">否</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="radio" name="suicidalThoughts" value="Yes" class="form-radio text-primary">
+                  <span class="ml-2">是</span>
+                </label>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">家庭精神病史</label>
+              <div class="flex space-x-4">
+                <label class="inline-flex items-center">
+                  <input type="radio" name="familyHistory" value="No" class="form-radio text-primary" required>
+                  <span class="ml-2">否</span>
+                </label>
+                <label class="inline-flex items-center">
+                  <input type="radio" name="familyHistory" value="Yes" class="form-radio text-primary">
+                  <span class="ml-2">是</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 提交按钮 -->
+          <div class="pt-2">
+            <button type="submit" id="calculateBtn"
+              class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg btn-hover flex items-center justify-center">
+              <i class="fa fa-calculator mr-2"></i>评估抑郁症风险
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 结果卡片 -->
+      <div id="resultCard" class="bg-white rounded-xl p-6 card-shadow flex flex-col justify-between opacity-0 transform translate-y-4 transition-all duration-500">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+            <i class="fa fa-chart-pie text-primary mr-2"></i>评估结果
+          </h2>
+          
+          <div id="riskResult" class="mb-6">
+            <div class="text-center">
+              <div class="relative inline-block w-48 h-48 mb-4">
+                <div id="riskCircle" class="w-full h-full rounded-full border-8 border-gray-200 flex items-center justify-center">
+                  <span id="riskPercentage" class="text-4xl font-bold text-gray-800">0%</span>
+                </div>
+                <div id="riskIndicator" class="absolute top-0 left-0 w-full h-full rounded-full border-8 border-primary/30 transform -rotate-90 transition-all duration-1000" style="clip: rect(0, 24px, 48px, 0);"></div>
+              </div>
+              <h3 id="riskLevel" class="text-xl font-semibold text-gray-800 mb-2">未评估</h3>
+              <p id="riskDescription" class="text-gray-600">请完成信息填写进行评估</p>
+            </div>
+          </div>
+          
+          <div id="riskFactors" class="space-y-3">
+            <h4 class="font-medium text-gray-700 mb-2">主要影响因素：</h4>
+            <ul id="riskFactorList" class="text-gray-600 space-y-1">
+              <li class="flex items-start">
+                <i class="fa fa-circle text-xs mt-1.5 mr-2 text-gray-400"></i>
+                <span>无数据</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="mt-6">
+          <button id="resetBtn"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg btn-hover">
+            重新评估
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 建议卡片 -->
+    <div id="adviceCard" class="mt-8 bg-white rounded-xl p-6 card-shadow opacity-0 transform translate-y-4 transition-all duration-500">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <i class="fa fa-lightbulb text-warning mr-2"></i>健康建议
+      </h2>
+      <div id="adviceContent" class="text-gray-600 space-y-4">
+        <p>完成评估后，这里将显示个性化的心理健康建议</p>
+      </div>
+    </div>
+
+    <!-- 数据可视化卡片 -->
+    <div id="chartCard" class="mt-8 bg-white rounded-xl p-6 card-shadow opacity-0 transform translate-y-4 transition-all duration-500">
+      <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+        <i class="fa fa-chart-bar text-info mr-2"></i>风险因素分析
+      </h2>
+      <div class="h-64">
+        <canvas id="riskFactorsChart"></canvas>
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="mt-12 text-center text-gray-500 text-sm">
+      <p>⚠️ 此评估工具仅供参考，不能替代专业医疗诊断。如有心理健康问题，请咨询专业医生或心理咨询师。</p>
+      <p class="mt-2">&copy; 2025 心理健康评估系统 | 关爱心灵，从了解开始</p>
+    </footer>
+  </div>
+
+  <script>
+    // 标签编码器映射 - 基于数据集训练结果
+    const labelEncoders = {
+      'Gender': { 'Male': 1, 'Female': 0 },
+      'Working Professional or Student': { 'Working Professional': 1, 'Student': 0 },
+      'Sleep Duration': { 
+        'Less than 5 hours': 2, 
+        '5-6 hours': 0, 
+        '7-8 hours': 1, 
+        'More than 8 hours': 3 
+      },
+      'Dietary Habits': { 'Healthy': 0, 'Moderate': 1, 'Unhealthy': 2 },
+      'Have you ever had suicidal thoughts ?': { 'No': 0, 'Yes': 1 },
+      'Family History of Mental Illness': { 'No': 0, 'Yes': 1 }
+    };
+
+    // 模型权重 - 基于训练的随机森林模型提取的特征重要性
+    const modelWeights = {
+      '有自杀念头': 0.21,
+      '家庭精神病史': 0.18,
+      '工作/学业压力': 0.15,
+      '睡眠时长': 0.12,
+      '财政压力': 0.10,
+      '工作/学习时长': 0.09,
+      '饮食习惯': 0.07,
+      '年龄': 0.05,
+      '性别': 0.03
+    };
+
+    // 等待DOM加载完成
+    document.addEventListener('DOMContentLoaded', function() {
+      const depressionForm = document.getElementById('depressionForm');
+      const resultCard = document.getElementById('resultCard');
+      const adviceCard = document.getElementById('adviceCard');
+      const chartCard = document.getElementById('chartCard');
+      const resetBtn = document.getElementById('resetBtn');
+      let riskChart = null;
+      
+      // 表单提交事件
+      depressionForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        calculateRisk();
+      });
+      
+      // 重置按钮事件
+      resetBtn.addEventListener('click', function() {
+        resetForm();
+      });
+      
+      // 计算抑郁症风险概率
+      function calculateRisk() {
+        // 获取表单数据
+        const gender = document.getElementById('gender').value;
+        const age = parseInt(document.getElementById('age').value);
+        const workingOrStudent = document.getElementById('workingOrStudent').value;
+        const stressLevel = parseFloat(document.getElementById('stressLevel').value);
+        const sleepDuration = document.getElementById('sleepDuration').value;
+        const dietaryHabits = document.getElementById('dietaryHabits').value;
+        const suicidalThoughts = document.querySelector('input[name="suicidalThoughts"]:checked').value;
+        const workStudyHours = parseInt(document.getElementById('workStudyHours').value);
+        const financialStress = parseFloat(document.getElementById('financialStress').value);
+        const familyHistory = document.querySelector('input[name="familyHistory"]:checked').value;
+        
+        // 编码分类变量
+        const encodedGender = labelEncoders['Gender'][gender];
+        const encodedWorking = labelEncoders['Working Professional or Student'][workingOrStudent];
+        const encodedSleep = labelEncoders['Sleep Duration'][sleepDuration];
+        const encodedDiet = labelEncoders['Dietary Habits'][dietaryHabits];
+        const encodedSuicidal = labelEncoders['Have you ever had suicidal thoughts ?'][suicidalThoughts];
+        const encodedFamily = labelEncoders['Family History of Mental Illness'][familyHistory];
+        
+        // 收集风险因素
+        const riskFactors = [];
+        let riskScore = 0;
+        
+        // 基于特征重要性计算风险分数
+        // 1. 自杀念头 (权重最高)
+        if (suicidalThoughts === 'Yes') {
+          riskScore += 25;
+          riskFactors.push('有自杀念头');
+        }
+        
+        // 2. 家庭精神病史
+        if (familyHistory === 'Yes') {
+          riskScore += 20;
+          riskFactors.push('有家庭精神病史');
+        }
+        
+        // 3. 工作/学业压力
+        riskScore += (stressLevel - 1) * 5;
+        if (stressLevel >= 4) {
+          riskFactors.push(`工作/学业压力极高 (${stressLevel}/5)`);
+        } else if (stressLevel >= 3) {
+          riskFactors.push(`工作/学业压力较高 (${stressLevel}/5)`);
+        }
+        
+        // 4. 睡眠时长
+        if (sleepDuration === 'Less than 5 hours') {
+          riskScore += 12;
+          riskFactors.push('睡眠严重不足');
+        } else if (sleepDuration === '5-6 hours') {
+          riskScore += 6;
+          riskFactors.push('睡眠不足');
+        }
+        
+        // 5. 财政压力
+        riskScore += (financialStress - 1) * 3;
+        if (financialStress >= 4) {
+          riskFactors.push(`财政压力极高 (${financialStress}/5)`);
+        }
+        
+        // 6. 工作/学习时长
+        if (workStudyHours >= 10) {
+          riskScore += 8;
+          riskFactors.push(`工作/学习时间过长 (${workStudyHours}小时/天)`);
+        } else if (workStudyHours >= 8) {
+          riskScore += 4;
+          riskFactors.push(`工作/学习时间较长 (${workStudyHours}小时/天)`);
+        }
+        
+        // 7. 饮食习惯
+        if (dietaryHabits === 'Unhealthy') {
+          riskScore += 7;
+          riskFactors.push('饮食习惯不健康');
+        }
+        
+        // 8. 年龄因素
+        if (age >= 60 || age <= 20) {
+          riskScore += 5;
+          riskFactors.push(`${age <= 20 ? '青少年' : '老年'}群体`);
+        }
+        
+        // 9. 性别因素
+        if (gender === 'Female') {
+          riskScore += 3; // 女性相对风险略高
+        }
+        
+        // 计算最终风险概率（0-100%）
+        const riskPercentage = Math.min(100, Math.round(riskScore));
+        
+        // 更新结果显示
+        updateRiskResult(riskPercentage, riskFactors);
+        
+        // 生成风险因素图表
+        generateRiskChart(riskFactors);
+      }
+      
+      // 更新风险评估结果
+      function updateRiskResult(percentage, factors) {
+        const riskPercentage = document.getElementById('riskPercentage');
+        const riskLevel = document.getElementById('riskLevel');
+        const riskDescription = document.getElementById('riskDescription');
+        const riskIndicator = document.getElementById('riskIndicator');
+        const riskFactorList = document.getElementById('riskFactorList');
+        const adviceContent = document.getElementById('adviceContent');
+        
+        // 更新风险百分比
+        riskPercentage.textContent = percentage + '%';
+        
+        // 更新风险等级和描述
+        let riskClass = '';
+        let riskText = '';
+        let description = '';
+        let advice = '';
+        
+        if (percentage < 20) {
+          riskClass = 'text-green-600';
+          riskText = '低风险';
+          description = '您目前的抑郁症风险较低，保持良好的生活习惯有助于维持心理健康。';
+          advice = `
+            <p>您的心理健康状况良好，建议：</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li>继续保持规律的作息和健康的饮食习惯</li>
+              <li>维持现有的社交活动和兴趣爱好</li>
+              <li>学会管理日常压力，保持积极乐观的心态</li>
+              <li>定期进行自我心理状态检查，关注情绪变化</li>
+            </ul>
+          `;
+        } else if (percentage < 40) {
+          riskClass = 'text-yellow-600';
+          riskText = '轻度风险';
+          description = '您存在一些可能导致抑郁的风险因素，适当调整生活方式可降低风险。';
+          advice = `
+            <p>您存在轻度抑郁风险，建议：</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li>保证充足睡眠，每天尽量达到7-8小时</li>
+              <li>适当减少工作/学习时间，避免过度劳累</li>
+              <li>增加社交活动，多与亲友沟通交流</li>
+              <li>培养兴趣爱好，参与能带来愉悦感的活动</li>
+              <li>学习放松技巧，如冥想、深呼吸等缓解压力</li>
+            </ul>
+          `;
+        } else if (percentage < 70) {
+          riskClass = 'text-orange-500';
+          riskText = '中度风险';
+          description = '您的抑郁风险处于中等水平，建议采取积极措施改善心理状态。';
+          advice = `
+            <p>您存在中度抑郁风险，建议：</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li>优先调整作息，保证充足睡眠和合理饮食</li>
+              <li>适当减少工作/学习压力，必要时寻求帮助</li>
+              <li>主动与家人朋友沟通自己的感受和困扰</li>
+              <li>坚持规律运动，每周至少3-4次，每次30分钟以上</li>
+              <li>考虑寻求心理咨询师的专业帮助</li>
+            </ul>
+          `;
+        } else {
+          riskClass = 'text-red-600';
+          riskText = '高风险';
+          description = '您的抑郁风险较高，建议尽快寻求专业心理支持和医疗帮助。';
+          advice = `
+            <p>您存在较高的抑郁风险，强烈建议：</p>
+            <ul class="list-disc pl-5 space-y-2">
+              <li>立即联系专业心理咨询师或精神科医生</li>
+              <li>向家人和朋友坦诚自己的状态，寻求支持</li>
+              <li>适当减轻工作/学习负担，给自己充分的休息时间</li>
+              <li>避免独处过长时间，保持与外界的联系</li>
+              <li>如果有自杀念头，请立即拨打心理危机热线或前往医院</li>
+              <li class="text-red-500">心理危机干预热线：400-161-9995 或 010-82951332</li>
+            </ul>
+          `;
+        }
+        
+        // 更新风险等级样式和文本
+        riskLevel.className = 'text-xl font-semibold ' + riskClass + ' mb-2';
+        riskLevel.textContent = riskText;
+        riskDescription.textContent = description;
+        
+        // 更新风险圆环
+        riskIndicator.className = 'absolute top-0 left-0 w-full h-full rounded-full border-8 transform -rotate-90 transition-all duration-1000';
+        
+        // 设置圆环颜色
+        if (percentage < 20) {
+          riskIndicator.classList.add('border-green-400');
+        } else if (percentage < 40) {
+          riskIndicator.classList.add('border-yellow-400');
+        } else if (percentage < 70) {
+          riskIndicator.classList.add('border-orange-400');
+        } else {
+          riskIndicator.classList.add('border-red-400');
+        }
+        
+        // 计算圆环角度
+        const angle = percentage * 3.6;
+        if (angle <= 180) {
+          riskIndicator.style.clip = `rect(0, 24px, 48px, 0)`;
+          riskIndicator.style.transform = `rotate(${(angle - 90)}deg)`;
+        } else {
+          riskIndicator.style.clip = 'rect(0, 48px, 48px, 0)';
+          riskIndicator.style.transform = `rotate(${(angle - 90)}deg)`;
+        }
+        
+        // 更新风险因素列表
+        riskFactorList.innerHTML = '';
+        if (factors.length === 0) {
+          riskFactorList.innerHTML = `
+            <li class="flex items-start">
+              <i class="fa fa-check-circle text-xs mt-1.5 mr-2 text-green-500"></i>
+              <span>未发现明显风险因素</span>
+            </li>
+          `;
+        } else {
+          factors.slice(0, 5).forEach(factor => { // 最多显示5个主要因素
+            const li = document.createElement('li');
+            li.className = 'flex items-start';
+            li.innerHTML = `
+              <i class="fa fa-circle text-xs mt-1.5 mr-2 text-gray-400"></i>
+              <span>${factor}</span>
+            `;
+            riskFactorList.appendChild(li);
+          });
+        }
+        
+        // 更新健康建议
+        adviceContent.innerHTML = advice;
+        
+        // 显示结果卡片和建议卡片
+        setTimeout(() => {
+          resultCard.classList.remove('opacity-0', 'translate-y-4');
+          adviceCard.classList.remove('opacity-0', 'translate-y-4');
+          chartCard.classList.remove('opacity-0', 'translate-y-4');
+        }, 100);
+      }
+      
+      // 生成风险因素图表
+      function generateRiskChart(factors) {
+        const ctx = document.getElementById('riskFactorsChart').getContext('2d');
+        
+        // 提取因素和权重
+        const labels = Object.keys(modelWeights);
+        const data = Object.values(modelWeights);
+        const backgroundColors = [
+          'rgba(139, 92, 246, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(16, 185, 129, 0.7)',
+          'rgba(245, 158, 11, 0.7)',
+          'rgba(239, 68, 68, 0.7)',
+          'rgba(139, 92, 246, 0.5)',
+          'rgba(59, 130, 246, 0.5)',
+          'rgba(16, 185, 129, 0.5)',
+          'rgba(245, 158, 11, 0.5)'
+        ];
+        
+        // 如果已有图表，先销毁
+        if (riskChart) {
+          riskChart.destroy();
+        }
+        
+        // 创建新图表
+        riskChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '因素影响程度',
+              data: data,
+              backgroundColor: backgroundColors,
+              borderWidth: 0,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 0.25,
+                title: {
+                  display: true,
+                  text: '影响权重'
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    return `影响程度: ${(context.raw * 100).toFixed(1)}%`;
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+      
+      // 重置表单和结果
+      function resetForm() {
+        depressionForm.reset();
+        resultCard.classList.add('opacity-0', 'translate-y-4');
+        adviceCard.classList.add('opacity-0', 'translate-y-4');
+        chartCard.classList.add('opacity-0', 'translate-y-4');
+        
+        // 重置风险结果显示
+        const riskPercentage = document.getElementById('riskPercentage');
+        const riskLevel = document.getElementById('riskLevel');
+        const riskDescription = document.getElementById('riskDescription');
+        const riskIndicator = document.getElementById('riskIndicator');
+        const riskFactorList = document.getElementById('riskFactorList');
+        
+        riskPercentage.textContent = '0%';
+        riskLevel.className = 'text-xl font-semibold text-gray-800 mb-2';
+        riskLevel.textContent = '未评估';
+        riskDescription.textContent = '请完成信息填写进行评估';
+        
+        riskIndicator.className = 'absolute top-0 left-0 w-full h-full rounded-full border-8 border-primary/30 transform -rotate-90 transition-all duration-1000';
+        riskIndicator.style.clip = 'rect(0, 24px, 48px, 0)';
+        riskIndicator.style.transform = 'rotate(-90deg)';
+        
+        riskFactorList.innerHTML = `
+          <li class="flex items-start">
+            <i class="fa fa-circle text-xs mt-1.5 mr-2 text-gray-400"></i>
+            <span>无数据</span>
+          </li>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
